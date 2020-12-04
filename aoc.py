@@ -9,23 +9,19 @@ Filter = lambda f,l: list(filter(f,l))
 
 def star(f): return lambda args: f(*args)   # lambda tuple unpacking
 def sread(name, constructor=str, div=None):
-    '''read file NAME, split it with DIV and parse it with a given constructor'''
+    '''read file NAME, split it with DIV and parse it with a given constructor
+    when DIV is given, `constructor()` is mapped over each elem.
+    Otherwise, constructor() is used for the entire input.'''
     with open(name) as f: s = f.read()
     if s[-1] == '\n': s = s[:-1]
     if div == None: return constructor(s)
     return Map(constructor, s.split(div))
 
-def sreadlines(name, t=str, div=None):
-    '''sread, but split across newlines first'''
-    s = sread(name).split('\n')
-    if div != None:
-        s = list(map(lambda l: l.split(div), s))
-    if t == int:
-        if div != None:
-            s = [list(map(int, l)) for l in s]
-        else:
-            s = list(map(int, s))
-    return s
+def sreadlines(name, constructor=str, div=None):
+    '''sread, but split across newlines first
+    constructor() is used for each element/line if div is given/None'''
+    if div is None: return sread(name,constructor,'\n')
+    return Map(lambda l: Map(constructor,l.split(div)), sread(name,str,'\n'))
 
 def makeGrid(s, xma=None, yma=None):
     '''creates a grid of (x,y):val pairs from a sreadlines() string-list
