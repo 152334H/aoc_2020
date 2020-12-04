@@ -8,17 +8,12 @@ Map = lambda f,l: list(map(f,l))
 Filter = lambda f,l: list(filter(f,l))
 
 def star(f): return lambda args: f(*args)   # lambda tuple unpacking
-
-def sread(name, t=str, div=None):
-    '''read file NAME, split it with DIV and convert it to type T'''
+def sread(name, constructor=str, div=None):
+    '''read file NAME, split it with DIV and parse it with a given constructor'''
     with open(name) as f: s = f.read()
     if s[-1] == '\n': s = s[:-1]
-    if div != None: s = s.split(div)
-    if t == int:
-        if div != None:
-            s = list(map(int, s))
-        else: s = int(s)
-    return s
+    if div == None: return constructor(s)
+    return Map(constructor, s.split(div))
 
 def sreadlines(name, t=str, div=None):
     '''sread, but split across newlines first'''
