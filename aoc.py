@@ -1,13 +1,33 @@
-from collections import defaultdict as dd
+from collections import defaultdict as dd, Counter
 from functools import reduce    # useful
 from itertools import * # useful
 from math import *  # for prod() and others
 
 # FIXING ITERABLES
 Map = lambda f,l: list(map(f,l))
+Sorted = lambda l: list(sorted(l))
 Filter = lambda f,l: list(filter(f,l))
+Reversed = lambda l: list(reversed(l))
 
 def star(f): return lambda args: f(*args)   # lambda tuple unpacking
+
+# MISC ALGOS
+def binsearch(f, ma): #thus far, only tested on `ma=2**i`
+    '''binary search across an arbitrary function F(x), with a maximal value of MA (and a minimal value of 0)'''
+    c = ma
+    sign = True
+    i = len(bin(ma))-2
+    while i:
+        i -= 1  #decrease the exponent
+        c += [1,-1][sign]*(1<<i)    #increase/reduce c
+        sign = f(c) #true/false -> should decrease/increase
+    if sign: c-=1 #if binary search ended off-by-one
+    return c
+def cumsum(ls): return [ls[i+1]+ls[i] for i in range(len(ls)-1)]
+
+def cumsub(ls): return [ls[i+1]-ls[i] for i in range(len(ls)-1)]
+
+# INPUT FUNCS
 def sread(name, constructor=str, div=None):
     '''read file NAME, split it with DIV and parse it with a given constructor
     when DIV is given, `constructor()` is mapped over each elem.
@@ -23,6 +43,7 @@ def sreadlines(name, constructor=str, div=None):
     if div is None: return sread(name,constructor,'\n')
     return Map(lambda l: Map(constructor,l.split(div)), sread(name,str,'\n'))
 
+# GRID-RELATED
 def makeGrid(s, xma=None, yma=None):
     '''creates a grid of (x,y):val pairs from a sreadlines() string-list
     the default values for xma&yma are len(s[0]) and len(s) respectively.'''
@@ -45,18 +66,6 @@ def toGrid(d, MAP=type('',(object,),{'__getitem__':lambda _,v:v})()):
             s+=MAP[d[(x,y)]]
         s += '\n'
     return s
-
-def binsearch(f, ma): #thus far, only tested on `ma=2**i`
-    '''binary search across an arbitrary function F(x), with a maximal value of MA (and a minimal value of 0)'''
-    c = ma
-    sign = True
-    i = len(bin(ma))-2
-    while i:
-        i -= 1  #decrease the exponent
-        c += [1,-1][sign]*(1<<i)    #increase/reduce c
-        sign = f(c) #true/false -> should decrease/increase
-    if sign: c-=1 #if binary search ended off-by-one
-    return c
 
 def adj(x,y):
     '''returns an array of the 4 (x,y) coordinates adjacent to the input coordinate'''
