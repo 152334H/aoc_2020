@@ -23,6 +23,7 @@ def binsearch(f, ma): #thus far, only tested on `ma=2**i`
         sign = f(c) #true/false -> should decrease/increase
     if sign: c-=1 #if binary search ended off-by-one
     return c
+
 def cumsum(ls): return [ls[i+1]+ls[i] for i in range(len(ls)-1)]
 
 def cumsub(ls): return [ls[i+1]-ls[i] for i in range(len(ls)-1)]
@@ -76,9 +77,20 @@ def diag(x,y):
     starting from the top-right, clockwise'''
     return [(x+1,y-1), (x+1,y+1), (x-1,y+1), (x-1,y-1)]
 
+def adjdiag(x,y):
+    '''adj(x,y)+diag(x,y)'''
+    return adj(x,y)+diag(x,y)
+
+def padd(p1,p2):
+    return tuple(Map(lambda t: t[0]+t[1], zip(p1,p2)))
+
 def valid(p, xmi, xma, ymi, yma):
     '''check if a point falls within the given ranges'''
     return p[0] >= xmi and p[0] < xma and p[1] >= ymi and p[1] < yma
+
+def Valid(p, s):
+    '''valid(), but grab xma/yma from input lines s[][].'''
+    return valid(p, 0, len(s[0]), 0, len(s))
 
 def back_adj(adj_c, i):
     '''given a coordinate from adj(), get back the original (x,y)'''
