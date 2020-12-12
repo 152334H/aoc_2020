@@ -68,7 +68,7 @@ def toGrid(d, MAP=type('',(object,),{'__getitem__':lambda _,v:v})()):
         s += '\n'
     return s
 
-def adj(x,y):
+def adj(x,y):   # North South East West
     '''returns an array of the 4 (x,y) coordinates adjacent to the input coordinate'''
     return [(x,y+1), (x,y-1), (x+1,y), (x-1,y)]
 
@@ -83,6 +83,8 @@ def adjdiag(x,y):
 
 def padd(p1,p2):
     return tuple(Map(lambda t: t[0]+t[1], zip(p1,p2)))
+
+def pmul(p,v): return tuple(c*v for c in p)
 
 def valid(p, xmi, xma, ymi, yma):
     '''check if a point falls within the given ranges'''
