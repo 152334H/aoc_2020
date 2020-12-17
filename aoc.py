@@ -51,7 +51,7 @@ def makeGrid(s, xma=None, yma=None):
     grid = {}
     for y in range(yma if yma is not None else len(s)):
         for x in range(xma if xma is not None else len(s[0])):
-            grid[(x,y)] = s[y][x]
+            grid[P([x,y])] = s[y][x]
     return grid
 #MAP's default value is an anonymous object with only one property: MAP[v]==v.
 def toGrid(d, MAP=type('',(object,),{'__getitem__':lambda _,v:v})()):
@@ -62,33 +62,43 @@ def toGrid(d, MAP=type('',(object,),{'__getitem__':lambda _,v:v})()):
     l = [t[1] for t in l]
     yma, ymi = max(l), min(l)
     s = ""
-    for y in range(yma, ymi-1, -1):
+    for y in range(xmi, yma+1): # prior: range(yma, ymi-1, -1):
         for x in range(xmi, xma+1):
             s+=MAP[d[(x,y)]]
         s += '\n'
     return s
 
+def adjdiagn(*argc): # all adj+diag points for a point of any dimensions
+    return tuple(P(t) for t in adjdiagn_with_self (*argc) if t != argc)
+
+def adjdiagn_with_self(*argc): # all adj/diag points, plus the point itself
+    if not len(argc):
+        yield ()
+        return # i.e. return [()]. 
+    for d in range(-1,2):
+        for t in adjdiagn_with_self(*argc[1:]):
+            yield (argc[0]+d,)+t
+
 def adj(x,y):   # North South East West
     '''returns an array of the 4 (x,y) coordinates adjacent to the input coordinate'''
-    return [(x,y+1), (x,y-1), (x+1,y), (x-1,y)]
+    return Map(P,[(x,y+1), (x,y-1), (x+1,y), (x-1,y)])
 
 def diag(x,y):
     '''get the 4 points diagonally-adjacent to (x,y),
     starting from the top-right, clockwise'''
-    return [(x+1,y-1), (x+1,y+1), (x-1,y+1), (x-1,y-1)]
+    return Map(P,[(x+1,y-1), (x+1,y+1), (x-1,y+1), (x-1,y-1)])
 
 def adjdiag(x,y):
     '''adj(x,y)+diag(x,y)'''
     return adj(x,y)+diag(x,y)
 
-def padd(p1,p2):
-    return tuple(Map(lambda t: t[0]+t[1], zip(p1,p2)))
+def padd(p1,p2): return tuple(Map(lambda t: t[0]+t[1], zip(p1,p2)))
 
 def pmul(p,v): return tuple(c*v for c in p)
 
 def valid(p, xmi, xma, ymi, yma):
     '''check if a point falls within the given ranges'''
-    return p[0] >= xmi and p[0] < xma and p[1] >= ymi and p[1] < yma
+    return  xmi <= p[0] < xma and ymi <= p[1] < yma
 
 def Valid(p, s):
     '''valid(), but grab xma/yma from input lines s[][].'''
@@ -97,6 +107,46 @@ def Valid(p, s):
 def back_adj(adj_c, i):
     '''given a coordinate from adj(), get back the original (x,y)'''
     return adj(*adj_c)[{0:1, 1:0, 2:3, 3:2}[i]]
+
+def adj(x,y):   # North South East West
+    '''returns an array of the 4 (x,y) coordinates adjacent to the input coordinate'''
+    return Map(P,[(x,y+1), (x,y-1), (x+1,y), (x-1,y)])
+
+class P(tuple):
+    #def __add__(self, other): return P(map(star(lambda a,b:a+b), zip(self,other)))
+    def add(self, other): return P(map(star(lambda a,b:a+b), zip(self,other)))
+    def __sub__(self, other): return P(map(star(lambda a,b:a-b), zip(self,other)))
+    def mul(self, v:int): return P(map(lambda c: c*v, self))
+
+class World(dict): # n-dimensional "grid" that tracks its boundaries 
+    def _checkbound(self,p): # to automatically increase the boundaries of the world
+        for i,v in enumerate(p):
+            if self.mi[i] > v: self.mi[i] = v
+            if self.ma[i] <= v: self.ma[i] = v+1
+    def __init__(self, *argc, **kwargs): # initialise self.dimen, self.mi, self.ma
+        super().__init__(*argc,**kwargs)
+        if not len(self): raise ValueError('World() needs at least 1 key-value pair to initialise, sorry!')
+        self.dimen = len(next(k for k in self)) # assume all points are same dimen
+        self.mi, self.ma = [0]*self.dimen,[0]*self.dimen
+        for p in self: self._checkbound(p)
+    ## !! this defaults to 0 !!
+    def __getitem__(self,p): # in particular, DON'T expand the dictionary
+        tile = self.get(p,0) # on unknown keys, unlike defaultdict
+        if tile: self._checkbound(p)
+        return tile
+    def __setitem__(self,p,tile): # use _checkbound if needed.
+        if tile: self._checkbound(p)
+        super().__setitem__(p,tile)
+    def within_and_adj(self):
+        '''returns iterator over all points within the world border,
+        expanded by +1 on both sides'''
+        def recur(i): # recursively get all points for any dimen
+            if i == self.dimen:
+                yield ()
+                return
+            for v in range(self.mi[i]-1, self.ma[i]+1):
+                for t in recur(i+1): yield (v,)+t
+        return recur(0)
 
 def distance_map(start, grid, func, optional=lambda:0):
     '''returns a dict containing a grid's (coord:manhatten-distance-to-start) pairings
