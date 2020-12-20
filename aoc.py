@@ -54,18 +54,18 @@ def makeGrid(s, xma=None, yma=None):
             grid[P([x,y])] = s[y][x]
     return grid
 #MAP's default value is an anonymous object with only one property: MAP[v]==v.
+def getGridBoundaries(d):
+    ''' returns xmi, xma, ymi, yma for a grid.'''
+    tl = d.keys()
+    yl = [t[1] for t in tl]
+    return min(tl)[0], max(tl)[0]+1, min(yl), max(yl)+1
 def toGrid(d, MAP=type('',(object,),{'__getitem__':lambda _,v:v})()):
     '''converts a dictionary grid D to a printable representation using the value-to-char mapping MAP
     if MAP is not given, it is assumed that each value of D is a single char'''
-    l = d.keys()
-    xma, xmi = max(l)[0], min(l)[0]
-    l = [t[1] for t in l]
-    yma, ymi = max(l), min(l)
-    s = ""
-    for y in range(xmi, yma+1): # prior: range(yma, ymi-1, -1):
-        for x in range(xmi, xma+1):
-            s+=MAP[d[(x,y)]]
-        s += '\n'
+    xmi, xma, ymi, yma = getGridBoundaries(d)
+    s = ""  # separate this out to make debugging easier.
+    for y in range(ymi, yma): # prior: range(yma-1, ymi-1, -1):
+        s += ''.join(MAP[d[(x,y)]] for x in range(xmi,xma)) + '\n'
     return s
 
 def adjdiagn(*argc): # all adj+diag points for a point of any dimensions
