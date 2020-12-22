@@ -1,5 +1,5 @@
 from aoc import *
-rules, messages = [chunk.split('\n') for chunk in sread('input').split('\n\n')]
+rules, messages = sreadlinelines('input', str, '\n')
 def parse_rule(l):
     k, v = l.split(': ')
     k = int(k)

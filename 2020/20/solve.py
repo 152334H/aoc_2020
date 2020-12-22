@@ -1,6 +1,5 @@
 from aoc import *
 from re import findall
-s = sread('input',str,'\n\n')
 def borders(grid, xma=10, yma=10):
     # note that all grids have 4 different borders.
     # N E S W
@@ -16,7 +15,7 @@ def parse(lines):
     num = int(findall('[0-9]+', num)[0])
     return num,grid
 
-s = [parse(lines) for lines in s]
+s = sreadlinelines('input', parse)
 grids = dict(s)
 has_border = dd(lambda: []) # border, num
 num_to_borders = {}

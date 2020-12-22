@@ -1,4 +1,5 @@
 from collections import defaultdict as dd, Counter
+from re import findall
 from functools import reduce    # useful
 from itertools import * # useful
 from math import *  # for prod() and others
@@ -44,6 +45,12 @@ def sreadlines(name, constructor=str, div=None):
     if div is None: return sread(name,constructor,'\n')
     return Map(lambda l: Map(constructor,l.split(div)), sread(name,str,'\n'))
 
+def sreadlinelines(name, constructor=str, div=None):
+    '''Split by \n\n, then for each group of lines,
+     - if div is None, apply constructor to the whole group of lines
+     - else, apply constructor to each subgroup in group.split(div).'''
+    if not div: return [constructor(lines) for lines in sread(name, str, '\n\n')]
+    return [[constructor(line) for line in lines.split(div)] for lines in sread(name, str, '\n\n')]
 # GRID-RELATED
 def makeGrid(s, xma=None, yma=None):
     '''creates a grid of (x,y):val pairs from a sreadlines() string-list
