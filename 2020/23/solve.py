@@ -1,67 +1,35 @@
 from aoc import *
-s = sread('input', str)
-#s = '389125467'
-s = [int(c) for c in s]
-mi = min(s)
-sorted_s = Sorted(s)
+def dowith(ma):
+    part1 = ma < 10
 
-def move(cups):
-    cur = cups[0]
-    three = cups[1:4]
-    cups = [cur] + cups[4:]
+    class Node(int):
+        def __init__(self,v): self.next = None
+    s = Map(int, sread('input', str)) + list(range(10,ma+1))
+    llmap = {}
+    for i,v in enumerate(s): llmap[v] = s[i] = Node(v)
+    for i in range(len(s)-1): s[i].next = s[i+1]
+    cups = s[-1].next = s[0]
 
-    for i in range(1,999):
-        label_of_dest = sorted_s[sorted_s.index(cur)-i] # 
-        try: dest = cups.index(label_of_dest)
-        except ValueError: continue
-        break
-    else: print("PANIC")
-    cups = cups[:dest+1] + three + cups[dest+1:]
-    
-    return cups[1:2]+cups[2:]+cups[0:1]
-for i in range(100):
-    s = move(s)
-    #print(s)
-while s[0] != 1:
-    s = [*s[1:], s[0]]
-print(''.join(map(str,s[1:])))
+    def popafter():
+        nex = cups.next
+        cups.next = nex.next
+        return nex
+    def move(cups):
+        three = [popafter() for _ in range(3)]
+        dest_lbl = cups-1
+        while dest_lbl in three or not dest_lbl:
+            if not dest_lbl: dest_lbl = ma+1
+            dest_lbl -= 1
+        dest = llmap[dest_lbl]
+        aft = dest.next
+        dest.next = three[0]
+        three[-1].next = aft
+        
+    for i in range((ma+part1)*10):
+        move(cups)
+        cups = cups.next
+    if not part1: print(llmap[1].next*llmap[1].next.next)
+    else: print(''.join(map(str,(v:=llmap[1 if not i else v].next for i in range(ma-1)))))
+dowith(9)
+dowith(1000000)
 
-
-# probably, if the destination cup wraps around to 1million, we can expect that we'll never see those 3 numbers again.
-# hence, we can just throw in numbers as necessary.
-
-s = '389125467'
-s = [int(c) for c in s]
-
-class Node(int):
-    def __init__(self,v):
-        self.next = None
-llmap = dict((i,Node(i)) for i in range(10, 1000001))
-for v in s: llmap[v] = Node(v)
-for i in range(len(s)-1): llmap[s[i]].next = llmap[s[i+1]]
-llmap[s[-1]].next = llmap[10]
-for i in range(10,1000000): llmap[i].next = llmap[i+1]
-llmap[1000000].next = llmap[s[0]]
-
-cups = llmap[s[0]]
-def popafter():
-    nex = cups.next
-    cups.next = nex.next
-    return nex
-def move(cups):
-    three = [popafter() for _ in range(3)]
-
-    dest_lbl = cups-1
-    while dest_lbl in three:
-        dest_lbl -= 1
-        if not dest_lbl: dest_lbl = 1000000
-    dest = llmap[dest_lbl]
-    aft = dest.next
-    for n in three: dest = dest.next = n
-    dest.next = aft
-    
-for i in range(100000000):
-    move(cups)
-    cups = cups.next
-    if i % 100000 == 0: print("hi")
-print(llmap[1].next)
