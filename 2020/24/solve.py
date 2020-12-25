@@ -6,17 +6,7 @@ DELIMS = {'e' :(1,0),
           'ne':(1,-1),
           'nw':(0,-1) }
 def parse(l): # return tile to be flipped
-    skip, rtr = 0, []
-    for i,c in enumerate(l[:-1]):
-        if skip:
-            skip = 0
-            continue
-        if c+l[i+1] in DELIMS:
-            c += l[i+1]
-            skip = 1
-        rtr.append(DELIMS[c])
-    if not skip: rtr.append(DELIMS[l[-1]])
-    return reduce(padd,rtr)
+    return reduce(padd,[DELIMS[c] for c in findall('|'.join(DELIMS), l)])
 
 grid = dd(lambda: False) # tiles are black (1) or white (0) 
 for p in sreadlines('input',parse): grid[p] = not grid[p]
