@@ -2,7 +2,9 @@ from collections import defaultdict as dd, Counter
 from re import findall
 from functools import reduce    # useful
 from itertools import * # useful
+_pow = pow  # math deletes pow... 
 from math import *  # for prod() and others
+pow = _pow
 
 # FIXING ITERABLES
 Map = lambda f,l: list(map(f,l))
